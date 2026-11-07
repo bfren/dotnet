@@ -29,3 +29,10 @@ jobs:
 NuGet trusted publishing only accepts a login from a workflow file in the package's own repository, so publishing is split:
 `prepare` (shared, builds and uploads the `nupkgs` artifact) → `nuget` (in the repository: downloads `nupkgs`, `NuGet/login`, push) → `notify` (shared).
 The `nuget` job needs `id-token: write` and `packages: write`, and the repository needs `NUGET_USER` and `SLACK_WEBHOOK` secrets.
+
+## Rulesets
+
+`rulesets/main.json` protects the default branch: no deletion or force push, signed commits, changes through a pull request (no approvals needed), and the `test / restore-build-test` check must pass (the `test` caller job running the shared `test.yml`).
+Repository admins can bypass it.
+
+Import it in each repository: Settings → Rules → Rulesets → New ruleset → Import a ruleset.
