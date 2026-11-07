@@ -71,27 +71,12 @@ jobs:
           --no-build \
           --configuration ${{ inputs.configuration }}
   notify:
-    runs-on: ubuntu-latest
     needs: restore-build-test
     if: always() # otherwise this job is skipped when tests fail, and the failure message is never sent
-    steps:
-    -
-      if: ${{ !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') }} # step success() only sees steps in this job, so check the jobs it needs
-      name: Finish - Success
-      uses: bfren/action-slack-notify@master
-      env:
-        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-        SLACK_USERNAME: ${{ inputs.name }} (GitHub)
-        SLACK_MESSAGE: Tests Passed
-        SLACK_COLOR: good
-        SLACK_ICON: https://bfren.dev/img/logo-square-500x500.jpg
-    -
-      if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
-      name: Finish - Failure
-      uses: bfren/action-slack-notify@master
-      env:
-        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-        SLACK_USERNAME: ${{ inputs.name }} (GitHub)
-        SLACK_MESSAGE: Test Failed
-        SLACK_COLOR: danger
-        SLACK_ICON: https://bfren.dev/img/logo-square-500x500.jpg
+    uses: bfren/dotnet/.github/workflows/notify.yml@main
+    with:
+      name: ${{ inputs.name }}
+      results: ${{ toJSON(needs.*.result) }}
+      success-message: Tests Passed
+      failure-message: Test Failed
+    secrets: inherit

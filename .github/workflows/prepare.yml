@@ -1,0 +1,72 @@
+name: Prepare
+
+on:
+  workflow_call:
+    inputs:
+      solution:
+        description: Solution file, e.g. Wrap.slnx
+        type: string
+        required: true
+      dotnet-versions:
+        description: .NET SDK versions to install, one per line
+        type: string
+        default: |
+          8.0.x
+          9.0.x
+          10.0.x
+
+env:
+  DOTNET_NOLOGO: true                     # Disable the .NET logo in the console output
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true # Disable the .NET first time experience to skip caching NuGet packages and speed up the build
+  DOTNET_CLI_TELEMETRY_OPTOUT: true       # Disable sending .NET CLI telemetry to Microsoft
+  PACKAGES_DIR: /home/runner/packages
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    -
+      name: Prepare - Checkout Code
+      uses: actions/checkout@v7
+    -
+      name: Prepare - Read Version
+      uses: bfren/read-file@v2
+      with:
+        file: ./Version
+      id: version
+    -
+      name: Prepare - Setup .NET
+      uses: actions/setup-dotnet@v6
+      with:
+        dotnet-version: ${{ inputs.dotnet-versions }}
+    -
+      name: Restore
+      run: |
+        dotnet restore "${{ inputs.solution }}"
+    -
+      name: Style
+      run: |
+        dotnet format style -v d "${{ inputs.solution }}" \
+          --no-restore \
+          --verify-no-changes
+    -
+      name: Build
+      run: |
+        dotnet build "${{ inputs.solution }}" \
+          --no-restore \
+          --configuration Release
+    -
+      if: success()
+      name: Pack
+      run: |
+        dotnet pack Pack.csproj \
+          --no-build \
+          --configuration Release \
+          /p:PackageOutputPath=${{ env.PACKAGES_DIR }} \
+          -p:PackageVersion=${{ steps.version.outputs.contents }}
+    -
+      name: Store
+      uses: actions/upload-artifact@v7
+      with:
+        name: nupkgs # callers download this artifact by name
+        path: ${{ env.PACKAGES_DIR }}

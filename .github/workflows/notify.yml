@@ -1,0 +1,49 @@
+name: Notify
+
+on:
+  workflow_call:
+    inputs:
+      name:
+        description: Project name used in the notification, e.g. Wrap
+        type: string
+        required: true
+      results:
+        description: JSON list of the result of each job this notification is about - pass toJSON(needs.*.result)
+        type: string
+        required: true
+      success-message:
+        description: Message sent when nothing failed (default '<name> publish succeeded')
+        type: string
+        default: "" # defaults cannot use expressions, so the name is added in the steps below
+      failure-message:
+        description: Message sent when something failed or was cancelled (default '<name> publish failed')
+        type: string
+        default: ""
+
+jobs:
+  slack:
+    runs-on: ubuntu-latest
+    env:
+      # a cancelled job counts as failed, so a release stopped part-way is not reported as a success
+      FAILED: ${{ contains(fromJSON(inputs.results), 'failure') || contains(fromJSON(inputs.results), 'cancelled') }}
+    steps:
+    -
+      if: env.FAILED == 'false'
+      name: Success
+      uses: bfren/action-slack-notify@master
+      env:
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        SLACK_USERNAME: ${{ inputs.name }} (GitHub)
+        SLACK_MESSAGE: ${{ inputs.success-message || format('{0} publish succeeded', inputs.name) }}
+        SLACK_COLOR: good
+        SLACK_ICON: https://bfren.dev/img/logo-square-500x500.jpg
+    -
+      if: env.FAILED == 'true'
+      name: Failure
+      uses: bfren/action-slack-notify@master
+      env:
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        SLACK_USERNAME: ${{ inputs.name }} (GitHub)
+        SLACK_MESSAGE: ${{ inputs.failure-message || format('{0} publish failed', inputs.name) }}
+        SLACK_COLOR: danger
+        SLACK_ICON: https://bfren.dev/img/logo-square-500x500.jpg
