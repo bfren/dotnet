@@ -30,7 +30,7 @@ env:
   PACKAGES_DIR: /home/runner/packages
 
 jobs:
-  restore-build-test-pack:
+  prepare:
     runs-on: ubuntu-latest
     steps:
     -
@@ -80,7 +80,7 @@ jobs:
         path: ${{ env.PACKAGES_DIR }}
   publish:
     runs-on: ubuntu-latest
-    needs: restore-build-test-pack
+    needs: prepare
     if: success()
     permissions:
       id-token: write   # lets NuGet/login exchange a GitHub token for a 1-hour NuGet key
@@ -111,7 +111,7 @@ jobs:
           --source https://nuget.pkg.github.com/bfren/index.json
   notify:
     runs-on: ubuntu-latest
-    needs: [restore-build-test-pack, publish]
+    needs: [prepare, publish]
     if: always() && !inputs.dry_run # always(): otherwise this job is skipped when an earlier job fails, and the failure message is never sent
     steps:
     -
