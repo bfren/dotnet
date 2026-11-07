@@ -1,0 +1,28 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"name": "Rnd",
+			"path": "../rnd"
+		},
+		{
+			"name": "Wrap",
+			"path": "../wrap"
+		},
+		{
+			"name": "Rqlite",
+			"path": "../rqlite"
+		},
+		{
+			"name": "Jeebs (v9)",
+			"path": "../jeebs/v9"
+		},
+		{
+			"name": "Mileage",
+			"path": "../mileage"
+		}
+	],
+	"settings": {}
+}
