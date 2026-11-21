@@ -23,6 +23,10 @@ on:
           9.0.x
           10.0.x
           11.0.x
+      submodules:
+        description: Whether to check out submodules - false, true or recursive (passed to actions/checkout)
+        type: string
+        default: "false"
 
 env:
   DOTNET_NOLOGO: true                     # Disable the .NET logo in the console output
@@ -36,6 +40,8 @@ jobs:
     -
       name: Prepare - Checkout Code
       uses: actions/checkout@v7
+      with:
+        submodules: ${{ inputs.submodules }}
     -
       name: Prepare - Read Version
       uses: bfren/read-file@v2
