@@ -79,7 +79,7 @@ jobs:
           --configuration ${{ inputs.configuration }}
   notify:
     needs: restore-build-test
-    if: always() # otherwise this job is skipped when tests fail, and the failure message is never sent
+    if: ${{ !cancelled() }} # runs when tests fail (so the failure is reported) but not when a newer push cancels the run
     uses: bfren/dotnet/.github/workflows/notify.yml@main
     with:
       name: ${{ inputs.name }}
