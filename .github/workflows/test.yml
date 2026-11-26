@@ -27,6 +27,10 @@ on:
         description: Whether to check out submodules - false, true or recursive (passed to actions/checkout)
         type: string
         default: "false"
+      style:
+        description: Whether to run dotnet format style --verify-no-changes before the build - turn off when the build enforces style (EnforceCodeStyleInBuild)
+        type: boolean
+        default: true
 
 env:
   DOTNET_NOLOGO: true                     # Disable the .NET logo in the console output
@@ -58,6 +62,7 @@ jobs:
       run: |
         dotnet restore "${{ inputs.solution }}"
     -
+      if: inputs.style
       name: Style
       run: |
         dotnet format style -v d "${{ inputs.solution }}" \
